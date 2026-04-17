@@ -8,7 +8,7 @@ permalink: /es/
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-cocampoa-0077B5?logo=linkedin&logoColor=white)](https://linkedin.com/in/cocampoa)
 [![GitHub](https://img.shields.io/badge/GitHub-cocampoa-181717?logo=github&logoColor=white)](https://github.com/cocampoa)
-[![English](https://img.shields.io/badge/🌐_Version-English-lightgrey)](../)
+[![English](https://img.shields.io/badge/🌐_Version-English-lightgrey)](/)
 
 ---
 
