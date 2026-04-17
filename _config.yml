@@ -1,14 +1,9 @@
-title: Carlos Ocampo
-description: Data Analyst · AI Systems Builder
-theme: minima
 
 minima:
-  skin: classic
+
 
 author:
   name: Carlos Ocampo
   email: carlosandres.ocampo@gmail.com
   github: cocampoa
 
-plugins:
-  - jekyll-seo-tag
