@@ -2,13 +2,9 @@
 title: Carlos Ocampo
 permalink: /es/
 ---
+# Second Brain
 
-# Carlos Ocampo
-
-**Analista de Datos · Desarrollador de Sistemas de IA**
-
-Construyo herramientas que convierten conversaciones y notas en conocimiento estructurado y recuperable.  
-Combino análisis de datos con sistemas modernos de IA para resolver problemas reales.
+> Un sistema que no solo recupera lo que pensaste — detecta estructura en tu pensamiento que tú mismo no has nombrado todavía.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-cocampoa-0077B5?logo=linkedin&logoColor=white)](https://linkedin.com/in/cocampoa)
 [![GitHub](https://img.shields.io/badge/GitHub-cocampoa-181717?logo=github&logoColor=white)](https://github.com/cocampoa)
@@ -16,91 +12,125 @@ Combino análisis de datos con sistemas modernos de IA para resolver problemas r
 
 ---
 
-## Second Brain — Sistema de Memoria Personal con IA
+## El problema real
 
-> *Un sistema que lee tus conversaciones, entiende de qué tratan, y las guarda de forma que puedas recuperarlas cuando las necesites.*
+Los sistemas de notas y RAG estándar resuelven recuperación. Este proyecto resuelve algo distinto: **cómo mantener coherencia de pensamiento a través del tiempo cuando el pensamiento mismo es no-lineal**.
 
-**Estado actual:** 1,264 chunks indexados · 3 campos activos · 348 compromisos personales rastreados
+Tenía cientos de conversaciones con IAs, reflexiones técnicas y filosóficas, compromisos, ideas embrionarias. La información existía. El problema era que no tenía arquitectura: no había forma de ver qué ideas estaban en tensión, qué campos semánticos habían madurado, qué posiciones había desarrollado sin haberlas articulado explícitamente.
 
-### Stack tecnológico
+Un buscador semántico estándar devuelve chunks relevantes. Lo que construí devuelve **contexto estructurado**: qué proyecto, qué nivel de madurez, si hay compromisos asociados, y — crucialmente — si la respuesta está respaldada por masa real o es inferencia sin ancla.
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-grafo%20de%20nodos-FF6B35)
-![Qdrant](https://img.shields.io/badge/Qdrant-vector%20DB-DC244C)
-![Anthropic](https://img.shields.io/badge/Claude-Anthropic-191919)
-![Voyage--3](https://img.shields.io/badge/Voyage--3-embeddings-5C6BC0)
-![Redis](https://img.shields.io/badge/Redis-cache-DC382D?logo=redis&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+---
 
-### El problema
+## Estado actual
 
-Tengo cientos de conversaciones con IAs, notas dispersas y documentos técnicos. La información existe, pero no es recuperable: buscar en texto plano pierde el contexto, y agregar metadatos a mano no escala.
+**1,264 chunks indexados · 3 campos activos · 348 compromisos rastreados**
 
-### La solución
+Campos activos: `second_brain` · `regulacion_vinculos_autenticidad` · `deseo`
 
-Un pipeline de ingestión que:
+---
 
-1. **Detecta** si el input es contenido nuevo o una consulta
-2. **Clasifica** la conversación completa a qué proyecto(s) pertenece
-3. **Trocea** el texto según su tipo (chat, documentación técnica, texto libre)
-4. **Enriquece** cada fragmento con intent, compromisos, entidades y nivel de madurez
-5. **Indexa** en Qdrant con metadatos ricos y membresías por proyecto
-6. **Recupera** con búsqueda semántica + reranking cuando se hace una consulta
+## Lo que hace diferente a este sistema
 
-### Arquitectura del grafo
+### 1. El sistema se conoce a sí mismo
+
+El pipeline incluye `self_ingest`: el sistema procesa su propio código fuente como corpus. `ingest_node.py`, `retrieve_node.py`, `emergence_service.py` viven indexados junto al resto del conocimiento. Cuando se le pregunta sobre su arquitectura, recupera el estado real de los archivos — no una descripción desactualizada.
+
+Esto tiene una consecuencia no trivial: el sistema puede proponer mejoras a su propio diseño basándose en lo que sabe de sí mismo. No es introspección simulada — es RAG aplicado al código del sistema que hace el RAG.
+
+### 2. Campos semánticos emergentes, no categorías manuales
+
+El sistema no pide al usuario que etiquete sus notas. Detecta clusters de chunks con alta proximidad vectorial (DBSCAN sobre embeddings coseno) y le pide al LLM que nombre el campo que emergió.
+
+Un campo como `deseo` — vocabulario difuso, transversal, sin términos técnicos únicos — aparece porque los chunks están cerca en el espacio vectorial, no porque alguien lo clasificó. El campo existía geométricamente antes de existir nominalmente.
+
+### 3. Ciclo de especialización centrífuga
+
+Cuando un campo acumula masa suficiente (≥30 chunks), el sistema calcula sus `core_topics` y expulsa los chunks periféricos hacia `unassigned`. Esos chunks flotantes alimentan el scanner de emergencia. Los campos se purifican solos y los campos nuevos nacen de los residuos de los viejos.
+
+### 4. Confianza calibrada: el sistema sabe cuándo no sabe
+
+El writer no genera con el mismo tono de certeza siempre. Si el `avg_score` de los chunks recuperados cae bajo `RETRIEVAL_CONFIDENCE_FLOOR` (configurable en `.env`), el prompt incluye una instrucción explícita: marcar la inferencia antes de responder.
+
+---
+
+## Un momento que revela el potencial — y el riesgo
+
+Durante el desarrollo, ingresté un texto sobre ética como optimización de deseos. Sin pedirlo explícitamente, el sistema generó una crítica sofisticada de esa misma idea: argumentó que tratar el deseo como función optimizable es una trampa epistemológica porque la observación colapsa la función, los deseos no son agregables y quien define la métrica define la realidad.
+
+El retrieve_log reveló algo perturbador: **los chunks con mayor score no venían del campo "deseo" — venían de código del propio sistema y de un contrato de negociación**. La separación coseno entre ellos era ~0.004. El sistema había generado una posición filosófica coherente mezclando reflexiones personales con su propio código fuente.
+
+Eso no es solo un bug de clasificación. Es la propiedad más interesante y peligrosa del sistema: puede articular posiciones latentes que el usuario no ha formulado conscientemente, pero también puede fabricar coherencia en tu voz sin respaldo real. La diferencia entre los dos casos se siente igual desde adentro.
+
+Ese diagnóstico llevó directamente a tres cambios de arquitectura: confidence floor en el writer, bootstrap del campo `deseo` desde corpus real, y post-hook de emergence para que los campos nuevos nazcan con fingerprint, no vacíos.
+
+---
+
+## Hacia dónde va: Telos
+
+Second Brain resuelve el problema de la memoria. El siguiente proyecto — **Telos** — resuelve el problema de la dirección.
+
+Telos emergió autónomamente como campo dentro del propio Second Brain: una masa de chunks sobre propósito, patrones de comportamiento y sistemas de valores que el scanner detectó como cluster coherente antes de que yo lo nombrara así.
+
+La hipótesis: si Second Brain modela *qué has pensado*, Telos modela *hacia qué te mueves* — inferido no de declaraciones sino de patrones de acción sostenida en el tiempo. Un sistema que distingue deseo consciente de deseo operante, y que detecta cuando actúas en dirección opuesta a lo que dices querer.
+
+El campo probabilístico del deseo es el primer módulo de Telos en construcción.
+
+---
+
+## Arquitectura
 
 ```
-                   ┌─→ confirm ──────────────────────────────→ END
+input → router ────┬─→ confirm ──────────────────────────────→ END
                    │
-input → router ────┼─→ retrieve → writer → [critic] → END    (query)
+                   ├─→ retrieve → writer → [critic] → END    (query)
                    │              writer → habit     → END
                    │              writer → backlog   → END
                    │
                    └─→ ingest → reconcile → retrieve → (mismo ramal)
 ```
 
-Nueve nodos: `router`, `confirm`, `ingest`, `reconcile`, `retrieve`, `writer`, `habit`, `backlog`, `critic`.
+Nueve nodos: `router` · `confirm` · `ingest` · `reconcile` · `retrieve` · `writer` · `habit` · `backlog` · `critic`
 
-### Decisiones de diseño notables
+**Decisiones de diseño notables**
 
-**El bibliotecario clasifica conversaciones completas, no chunks**  
-Antes de ingestar, el sistema hace una sola llamada a Claude con la conversación completa y la lista de proyectos disponibles (con sus descripciones semánticas). Claude decide a qué proyecto(s) pertenece y con qué confianza. Cada chunk hereda esa clasificación directamente. Esto es distinto a los fingerprints: el `fingerprint_service` usa similitud coseno entre embeddings para definir el vocabulario de cada proyecto; el bibliotecario usa ese vocabulario como contexto, pero la decisión final la toma el LLM.
+El bibliotecario clasifica conversaciones completas, no chunks — una sola llamada a Claude con la conversación completa y la lista de campos disponibles. Cada chunk hereda esa clasificación. La eliminación del ajuste coseno local por chunk fue deliberada: con Voyage-3 monoautor el gap entre categorías era ~0.006, ajustar sobre esa diferencia amplificaba ruido, no señal.
 
-**Eliminación del ajuste coseno local por chunk**  
-La versión anterior re-puntuaba cada chunk contra los fingerprints de forma individual y usaba esa similitud coseno para ajustar las membresías heredadas de la conversación. Con embeddings Voyage-3 en corpus monoautor, el gap entre categorías era ~0.006 — ajustar sobre esa diferencia podía flipar el campo primario. Se eliminó el ajuste local; el score del bibliotecario es la señal definitiva.
+El chunking es semántico por tipo de contenido: conversación (600 tokens), documentación técnica (400 tokens), texto libre (400 tokens).
 
-**Chunking semántico por tipo de contenido**  
-El sistema detecta si el texto es una conversación (turnos de chat), documentación técnica (headers / bloques de código) o texto libre, y aplica una estrategia de chunking diferente en cada caso. Límite de 600 tokens para chat, 400 para técnico y general.
+---
 
-**Sistema de fingerprints + emergence**  
-Cada proyecto tiene un fingerprint: señales positivas y anti-señales que definen su vocabulario semántico. El `fingerprint_service` calcula `cosine_sim(text_vec, signal_vec) - ANTI_WEIGHT * cosine_sim(text_vec, anti_vec)`. Los chunks sin proyecto asignado se reclusteran periódicamente: cuando aparece una masa crítica de chunks similares sin clasificar, el sistema detecta un nuevo proyecto emergente.
+## Stack
+
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-FF6B35)
+![Qdrant](https://img.shields.io/badge/Qdrant-DC244C)
+![Anthropic](https://img.shields.io/badge/Claude-Anthropic-191919)
+![Voyage-3](https://img.shields.io/badge/Voyage--3-5C6BC0)
+![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
+---
+
+## Lo que esto revela sobre el problema más amplio
+
+Los sistemas de memoria para IA asumen que el usuario sabe qué quiere recordar. Este proyecto parte de la hipótesis opuesta: **el valor está en lo que no sabías que habías pensado**.
+
+Eso tiene implicaciones directas para cualquier organización que acumule conocimiento en conversaciones, tickets, decisiones informales y documentación dispersa. El problema no es recuperación. Es que la estructura del conocimiento no es visible hasta que algo la hace emerger.
 
 ---
 
 ## Otros proyectos
 
-[![Streamlit Projects](https://img.shields.io/badge/streamlit__test-análisis%20de%20datos-FF4B4B?logo=streamlit&logoColor=white)](https://github.com/cocampoa/streamlit_test)
-[![Pronósticos R](https://img.shields.io/badge/pronosticos__de__negocios-econometría%20en%20R-276DC3?logo=r&logoColor=white)](https://github.com/cocampoa/pronosticos_de_negocios)
+[![Streamlit](https://img.shields.io/badge/streamlit__test-análisis%20de%20datos-FF4B4B?logo=streamlit&logoColor=white)](https://github.com/cocampoa/streamlit_test)
+[![R](https://img.shields.io/badge/pronosticos__de__negocios-econometría%20en%20R-276DC3?logo=r&logoColor=white)](https://github.com/cocampoa/pronosticos_de_negocios)
 
 ---
 
 ## Skills
 
-**Análisis de datos**  
-![SQL](https://img.shields.io/badge/SQL-4479A1?logo=postgresql&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
-![R](https://img.shields.io/badge/R-276DC3?logo=r&logoColor=white)
-![Excel](https://img.shields.io/badge/Excel-217346?logo=microsoft-excel&logoColor=white)
+**Análisis de datos** · SQL · Python · R · Excel  
+**IA & sistemas** · LangGraph · Qdrant · Anthropic API · Docker  
+**Visualización** · Streamlit · Tableau · Matplotlib · Plotly
 
-**IA & sistemas**  
-![LangGraph](https://img.shields.io/badge/LangGraph-FF6B35)
-![Qdrant](https://img.shields.io/badge/Qdrant-DC244C)
-![Anthropic API](https://img.shields.io/badge/Anthropic_API-191919)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-
-**Visualización**  
-![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
-![Tableau](https://img.shields.io/badge/Tableau-E97627?logo=tableau&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C)
-![Plotly](https://img.shields.io/badge/Plotly-3F4F75?logo=plotly&logoColor=white)
