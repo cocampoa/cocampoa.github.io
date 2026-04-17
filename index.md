@@ -1,4 +1,6 @@
-# Second Brain
+# Second Brain By Carlos Ocampo
+**AI Systems Builder**
+
 
 > A system that doesn't just retrieve what you've thought — it detects structure in your thinking that you haven't named yet.
 
