@@ -6,7 +6,7 @@
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-cocampoa-0077B5?logo=linkedin&logoColor=white)](https://linkedin.com/in/cocampoa)
 [![GitHub](https://img.shields.io/badge/GitHub-cocampoa-181717?logo=github&logoColor=white)](https://github.com/cocampoa)
-[![Español](https://img.shields.io/badge/🌐_Versi%C3%B3n-Espa%C3%B1ol-lightgrey)](/es/)
+[![Español](https://img.shields.io/badge/Version-Español-blue)](/es/)
 ---
 
 ## The real problem
